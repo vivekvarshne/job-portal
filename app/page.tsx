@@ -1,65 +1,78 @@
-import Image from "next/image";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import Marquee from "@/components/ui/Marquee";
+import JobSection from "@/components/ui/JobSection";
+import AdBanner from "@/components/AdBanner";
+import { getJobsByCategory, getLatestJobs } from "@/lib/db/jobs";
 
-export default function Home() {
+export default async function Home() {
+  // Fetch real data from Firebase
+  // Note: These will return empty arrays initially until data is added via Admin panel
+  const latestJobs = await getLatestJobs(15);
+  const admitCards = await getJobsByCategory("admit-card");
+  const results = await getJobsByCategory("result");
+  const answerKeys = await getJobsByCategory("answer-key");
+  const syllabus = await getJobsByCategory("syllabus");
+  const admission = await getJobsByCategory("admission");
+  const documents = await getJobsByCategory("documents");
+
+  const breakingNews = [
+    "SSC CGL 2026 Tier 1 Admit Card Released - Download Now",
+    "UPSC Civil Services Prelims 2026 Notification Out",
+    "RRB NTPC Phase 2 Exam Dates Announced",
+    "IBPS PO Interview Call Letter Available"
+  ];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+    <div className="min-h-screen flex flex-col">
+      <Header />
+
+      <main className="flex-grow">
+        <Marquee news={breakingNews} />
+
+        <div className="container mx-auto px-4 py-8">
+          {/* Welcome Section */}
+          <div className="bg-white p-6 rounded-lg border shadow-sm mb-8 text-center border-blue-100">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-blue-900 mb-2">
+              JOB PORTAL - OFFICIAL WEBSITE
+            </h1>
+            <p className="text-sm text-gray-600 font-medium">
+              Join us to get the latest government job notifications, admit cards, and exam results.
+              The most trusted platform for millions of aspirants.
+            </p>
+          </div>
+
+          <AdBanner position="header" />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <JobSection title="Latest Jobs" category="latest-jobs" jobs={latestJobs} />
+            <JobSection title="Admit Card" category="admit-card" jobs={admitCards} />
+            <JobSection title="Results" category="result" jobs={results} />
+            <JobSection title="Answer Key" category="answer-key" jobs={answerKeys} />
+            <JobSection title="Syllabus" category="syllabus" jobs={syllabus} />
+            <JobSection title="Admission" category="admission" jobs={admission} />
+            <JobSection title="Documents" category="documents" jobs={documents} />
+
+            {/* Useful Links / More Section */}
+            <div className="bg-white border-2 border-red-600 rounded-lg overflow-hidden shadow-sm">
+              <div className="bg-red-600 text-white px-4 py-2">
+                <h2 className="font-bold uppercase tracking-wide text-center">Important Links</h2>
+              </div>
+              <div className="p-4 grid grid-cols-1 gap-2">
+                <a href="#" className="p-2 border rounded text-sm text-blue-700 font-semibold hover:bg-blue-50 text-center">UP Scholarship Registration</a>
+                <a href="#" className="p-2 border rounded text-sm text-blue-700 font-semibold hover:bg-blue-50 text-center">Aadhar Card Download</a>
+                <a href="#" className="p-2 border rounded text-sm text-blue-700 font-semibold hover:bg-blue-50 text-center">Pan Card Online Form</a>
+                <a href="#" className="p-2 border rounded text-sm text-blue-700 font-semibold hover:bg-blue-50 text-center">UP Ration Card List</a>
+                <a href="#" className="p-2 border rounded text-sm text-blue-700 font-semibold hover:bg-blue-50 text-center">Voter ID Card Online</a>
+              </div>
+            </div>
+          </div>
+
+          <AdBanner position="footer" />
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }
