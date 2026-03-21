@@ -5,6 +5,8 @@ import JobCard from "@/components/ui/JobCard";
 import { notFound } from "next/navigation";
 import { Search } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 interface Props {
     params: { category: string };
 }

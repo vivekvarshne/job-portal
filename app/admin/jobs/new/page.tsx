@@ -36,7 +36,8 @@ export default function NewJob() {
             start: "",
             end: "",
             examDate: "",
-            resultDate: ""
+            resultDate: "",
+            customDates: [] as { label: string; date: string }[]
         },
         applicationFee: "",
         categoryFees: [
@@ -50,12 +51,14 @@ export default function NewJob() {
         ],
         applyLink: "",
         pdfUrl: "",
+        formFee: 0,
+        originalFormFee: 0,
         seoTitle: "",
         seoDescription: "",
         requiredDocuments: [] as string[],
         externalLinks: [{ title: "Official Apply Link", url: "" }] as { title: string; url: string }[],
         status: "published" as "published" | "draft",
-        formFee: 0,
+        contentSections: [] as Job["contentSections"],
     });
 
     const handleInputChange = (e: any) => {
@@ -137,6 +140,192 @@ export default function NewJob() {
         setFormData({ ...formData, externalLinks: newLinks });
     };
 
+    const addCustomDate = () => {
+        setFormData(prev => ({
+            ...prev,
+            importantDates: {
+                ...prev.importantDates,
+                customDates: [...(prev.importantDates.customDates || []), { label: "", date: "" }]
+            }
+        }));
+    };
+
+    const removeCustomDate = (index: number) => {
+        setFormData(prev => ({
+            ...prev,
+            importantDates: {
+                ...prev.importantDates,
+                customDates: prev.importantDates.customDates.filter((_, i) => i !== index)
+            }
+        }));
+    };
+
+    const handleCustomDateChange = (index: number, field: 'label' | 'date', value: string) => {
+        const updated = [...formData.importantDates.customDates];
+        updated[index][field] = value;
+        setFormData(prev => ({
+            ...prev,
+            importantDates: {
+                ...prev.importantDates,
+                customDates: updated
+            }
+        }));
+    };
+
+    const addSection = (type: "table" | "bullets" | "rich-text") => {
+        const newSection: any = {
+            id: Date.now().toString(),
+            title: "",
+            type,
+        };
+
+        if (type === "table") {
+            newSection.tableData = { headers: ["Column 1", "Column 2"], rows: [["", ""]] };
+        } else if (type === "bullets") {
+            newSection.listData = [""];
+        } else if (type === "rich-text") {
+            newSection.textData = "";
+        }
+
+        setFormData(prev => ({
+            ...prev,
+            contentSections: [...(prev.contentSections || []), newSection]
+        }));
+    };
+
+    const removeSection = (id: string) => {
+        setFormData(prev => ({
+            ...prev,
+            contentSections: prev.contentSections?.filter(s => s.id !== id)
+        }));
+    };
+
+    const updateSection = (id: string, field: string, value: any) => {
+        setFormData(prev => ({
+            ...prev,
+            contentSections: prev.contentSections?.map(s => s.id === id ? { ...s, [field]: value } : s)
+        }));
+    };
+
+    const addTableRow = (sectionId: string) => {
+        setFormData(prev => ({
+            ...prev,
+            contentSections: prev.contentSections?.map(s => {
+                if (s.id === sectionId && s.tableData) {
+                    const newRow = new Array(s.tableData.headers.length).fill("");
+                    return { ...s, tableData: { ...s.tableData, rows: [...s.tableData.rows, newRow] } };
+                }
+                return s;
+            })
+        }));
+    };
+
+    const removeTableRow = (sectionId: string, rowIndex: number) => {
+        setFormData(prev => ({
+            ...prev,
+            contentSections: prev.contentSections?.map(s => {
+                if (s.id === sectionId && s.tableData) {
+                    return { ...s, tableData: { ...s.tableData, rows: s.tableData.rows.filter((_, i) => i !== rowIndex) } };
+                }
+                return s;
+            })
+        }));
+    };
+
+    const updateTableCell = (sectionId: string, rowIndex: number, colIndex: number, value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            contentSections: prev.contentSections?.map(s => {
+                if (s.id === sectionId && s.tableData) {
+                    const newRows = [...s.tableData.rows];
+                    newRows[rowIndex][colIndex] = value;
+                    return { ...s, tableData: { ...s.tableData, rows: newRows } };
+                }
+                return s;
+            })
+        }));
+    };
+
+    const addTableHeader = (sectionId: string) => {
+        setFormData(prev => ({
+            ...prev,
+            contentSections: prev.contentSections?.map(s => {
+                if (s.id === sectionId && s.tableData) {
+                    const newHeaders = [...s.tableData.headers, `Column ${s.tableData.headers.length + 1}`];
+                    const newRows = s.tableData.rows.map(row => [...row, ""]);
+                    return { ...s, tableData: { headers: newHeaders, rows: newRows } };
+                }
+                return s;
+            })
+        }));
+    };
+
+    const removeTableHeader = (sectionId: string, colIndex: number) => {
+        setFormData(prev => ({
+            ...prev,
+            contentSections: prev.contentSections?.map(s => {
+                if (s.id === sectionId && s.tableData && s.tableData.headers.length > 1) {
+                    const newHeaders = s.tableData.headers.filter((_, i) => i !== colIndex);
+                    const newRows = s.tableData.rows.map(row => row.filter((_, i) => i !== colIndex));
+                    return { ...s, tableData: { headers: newHeaders, rows: newRows } };
+                }
+                return s;
+            })
+        }));
+    };
+
+    const updateTableHeader = (sectionId: string, colIndex: number, value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            contentSections: prev.contentSections?.map(s => {
+                if (s.id === sectionId && s.tableData) {
+                    const newHeaders = [...s.tableData.headers];
+                    newHeaders[colIndex] = value;
+                    return { ...s, tableData: { ...s.tableData, headers: newHeaders } };
+                }
+                return s;
+            })
+        }));
+    };
+
+    const addListItem = (sectionId: string) => {
+        setFormData(prev => ({
+            ...prev,
+            contentSections: prev.contentSections?.map(s => {
+                if (s.id === sectionId && s.listData) {
+                    return { ...s, listData: [...s.listData, ""] };
+                }
+                return s;
+            })
+        }));
+    };
+
+    const removeListItem = (sectionId: string, index: number) => {
+        setFormData(prev => ({
+            ...prev,
+            contentSections: prev.contentSections?.map(s => {
+                if (s.id === sectionId && s.listData) {
+                    return { ...s, listData: s.listData.filter((_, i) => i !== index) };
+                }
+                return s;
+            })
+        }));
+    };
+
+    const updateListItem = (sectionId: string, index: number, value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            contentSections: prev.contentSections?.map(s => {
+                if (s.id === sectionId && s.listData) {
+                    const newList = [...s.listData];
+                    newList[index] = value;
+                    return { ...s, listData: newList };
+                }
+                return s;
+            })
+        }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -206,7 +395,7 @@ export default function NewJob() {
                                 required
                                 name="title"
                                 className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                                placeholder="e.g. SSC CGL 2026 Online Form"
+                                placeholder="Post Name"
                                 value={formData.title}
                                 onChange={handleInputChange}
                             />
@@ -267,17 +456,34 @@ export default function NewJob() {
 
                 {/* Janseva Form Fee */}
                 <section className="bg-green-50 p-6 rounded-2xl border border-green-100 space-y-4">
-                    <h2 className="text-sm font-bold text-green-900 uppercase">Janseva Kendra Form Application Fee (₹)</h2>
-                    <p className="text-xs text-green-700">This amount will be added to the form filling base charge when a student applies via Janseva Kendra.</p>
-                    <input
-                        type="number"
-                        min="0"
-                        name="formFee"
-                        className="w-full p-2.5 border rounded-lg"
-                        placeholder="e.g. 500"
-                        value={formData.formFee}
-                        onChange={(e) => setFormData(prev => ({ ...prev, formFee: Number(e.target.value) }))}
-                    />
+                    <h2 className="text-sm font-bold text-green-900 uppercase underline">Janseva Kendra Form Properties</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-green-700 mb-1 uppercase">Actual Price (₹) — What student pays</label>
+                            <input
+                                type="number"
+                                min="0"
+                                name="formFee"
+                                className="w-full p-2.5 border rounded-lg font-bold text-green-900"
+                                placeholder="e.g. 100"
+                                value={formData.formFee}
+                                onChange={(e) => setFormData(prev => ({ ...prev, formFee: Number(e.target.value) }))}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-red-700 mb-1 uppercase">Original Price (₹) — For strikethrough cut</label>
+                            <input
+                                type="number"
+                                min="0"
+                                name="originalFormFee"
+                                className="w-full p-2.5 border rounded-lg text-gray-500"
+                                placeholder="e.g. 200"
+                                value={formData.originalFormFee}
+                                onChange={(e) => setFormData(prev => ({ ...prev, originalFormFee: Number(e.target.value) }))}
+                            />
+                        </div>
+                    </div>
+                    <p className="text-[10px] text-green-600 italic">This will show as <span className="line-through text-red-400">₹{formData.originalFormFee || 200}</span> ₹{formData.formFee || 100} on the application form.</p>
                 </section>
 
                 {/* Important Dates */}
@@ -330,6 +536,54 @@ export default function NewJob() {
                                 value={formData.importantDates.resultDate}
                                 onChange={handleInputChange}
                             />
+                        </div>
+                    </div>
+
+                    {/* Custom Dates */}
+                    <div className="mt-6 pt-6 border-t border-gray-100">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-sm font-bold text-gray-700 uppercase">Other Important Dates</h3>
+                            <button
+                                type="button"
+                                onClick={addCustomDate}
+                                className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg flex items-center font-bold hover:bg-blue-100 border border-blue-100"
+                            >
+                                <Plus className="h-4 w-4 mr-1" /> ADD DATE
+                            </button>
+                        </div>
+                        <div className="space-y-3">
+                            {formData.importantDates.customDates.map((cd, idx) => (
+                                <div key={idx} className="flex items-center gap-3">
+                                    <div className="flex-1">
+                                        <input
+                                            type="text"
+                                            className="w-full p-2 border rounded-lg text-sm"
+                                            placeholder="Label (e.g. Mains Exam Date)"
+                                            value={cd.label}
+                                            onChange={(e) => handleCustomDateChange(idx, 'label', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="flex-1">
+                                        <input
+                                            type="text"
+                                            className="w-full p-2 border rounded-lg text-sm"
+                                            placeholder="Date (e.g. 25/08/2026)"
+                                            value={cd.date}
+                                            onChange={(e) => handleCustomDateChange(idx, 'date', e.target.value)}
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeCustomDate(idx)}
+                                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </button>
+                                </div>
+                            ))}
+                            {formData.importantDates.customDates.length === 0 && (
+                                <p className="text-xs text-gray-400 italic text-center">No additional dates added. Click "Add Date" to include more.</p>
+                            )}
                         </div>
                     </div>
                 </section>
@@ -562,6 +816,171 @@ export default function NewJob() {
                     </div>
                 </section>
 
+                {/* Custom Content Sections */}
+                <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6">
+                    <div className="flex items-center justify-between border-b pb-2">
+                        <div className="flex items-center space-x-2 text-purple-700 font-bold uppercase">
+                            <Plus className="h-5 w-5" />
+                            <h2>Custom Content Sections (Tables, Lists, etc.)</h2>
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                type="button"
+                                onClick={() => addSection("table")}
+                                className="text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg font-bold border border-purple-100"
+                            >
+                                <Plus className="h-4 w-4 mr-1 inline" /> TABLE
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => addSection("bullets")}
+                                className="text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg font-bold border border-purple-100"
+                            >
+                                <Plus className="h-4 w-4 mr-1 inline" /> LIST
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => addSection("rich-text")}
+                                className="text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg font-bold border border-purple-100"
+                            >
+                                <Plus className="h-4 w-4 mr-1 inline" /> TEXT
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="space-y-8">
+                        {formData.contentSections?.map((section) => (
+                            <div key={section.id} className="p-4 border rounded-xl bg-gray-50 space-y-4 relative">
+                                <button
+                                    type="button"
+                                    onClick={() => removeSection(section.id)}
+                                    className="absolute -top-2 -right-2 p-1.5 bg-red-100 text-red-600 rounded-full hover:bg-red-200 border border-red-200"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </button>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase px-1 mb-1">Section Title/Heading</label>
+                                    <input
+                                        type="text"
+                                        className="w-full p-2 border rounded-lg font-bold text-blue-900"
+                                        placeholder="e.g. Mode of Selection or Vacancy Table"
+                                        value={section.title}
+                                        onChange={(e) => updateSection(section.id, "title", e.target.value)}
+                                    />
+                                </div>
+
+                                {section.type === "table" && section.tableData && (
+                                    <div className="space-y-4">
+                                        <div className="flex overflow-x-auto pb-2 gap-2">
+                                            {section.tableData.headers.map((h, hi) => (
+                                                <div key={hi} className="min-w-[150px] relative group">
+                                                    <input
+                                                        type="text"
+                                                        className="w-full p-2 border rounded bg-blue-900 text-white text-xs font-bold"
+                                                        value={h}
+                                                        onChange={(e) => updateTableHeader(section.id, hi, e.target.value)}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeTableHeader(section.id, hi)}
+                                                        className="hidden group-hover:block absolute -top-1 -right-1 p-0.5 bg-red-500 text-white rounded-full"
+                                                    >
+                                                        <Trash2 className="h-3 w-3" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <button
+                                                type="button"
+                                                onClick={() => addTableHeader(section.id)}
+                                                className="px-3 py-2 bg-blue-100 text-blue-700 rounded text-xs font-bold shrink-0"
+                                            >
+                                                + COL
+                                            </button>
+                                        </div>
+                                        
+                                        <div className="space-y-2">
+                                            {section.tableData.rows.map((row, ri) => (
+                                                <div key={ri} className="flex gap-2">
+                                                    {row.map((cell, ci) => (
+                                                        <input
+                                                            key={ci}
+                                                            type="text"
+                                                            className="flex-1 min-w-[150px] p-2 border rounded text-xs"
+                                                            value={cell}
+                                                            onChange={(e) => updateTableCell(section.id, ri, ci, e.target.value)}
+                                                        />
+                                                    ))}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeTableRow(section.id, ri)}
+                                                        className="p-2 text-red-500 hover:bg-red-50"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <button
+                                                type="button"
+                                                onClick={() => addTableRow(section.id)}
+                                                className="w-full py-2 bg-gray-200 text-gray-700 rounded text-xs font-bold hover:bg-gray-300"
+                                            >
+                                                + ADD ROW
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {section.type === "bullets" && section.listData && (
+                                    <div className="space-y-2">
+                                        {section.listData.map((item, li) => (
+                                            <div key={li} className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    className="flex-1 p-2 border rounded text-xs"
+                                                    placeholder="Bullet Point Text"
+                                                    value={item}
+                                                    onChange={(e) => updateListItem(section.id, li, e.target.value)}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeListItem(section.id, li)}
+                                                    className="p-2 text-red-500 hover:bg-red-50"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        <button
+                                            type="button"
+                                            onClick={() => addListItem(section.id)}
+                                            className="w-full py-2 bg-gray-200 text-gray-700 rounded text-xs font-bold"
+                                        >
+                                            + ADD ITEM
+                                        </button>
+                                    </div>
+                                )}
+
+                                {section.type === "rich-text" && (
+                                    <textarea
+                                        className="w-full p-2.5 border rounded-lg text-sm"
+                                        rows={4}
+                                        placeholder="Enter content text..."
+                                        value={section.textData}
+                                        onChange={(e) => updateSection(section.id, "textData", e.target.value)}
+                                    />
+                                )}
+                            </div>
+                        ))}
+                        {(!formData.contentSections || formData.contentSections.length === 0) && (
+                            <div className="text-center py-8 border-2 border-dashed rounded-xl text-gray-400">
+                                <Plus className="h-8 w-8 mx-auto mb-2 opacity-20" />
+                                <p className="text-sm">No custom content sections added. Add tables or lists for detailed job info.</p>
+                            </div>
+                        )}
+                    </div>
+                </section>
+
                 {/* SEO Section */}
                 <section className="bg-blue-50 p-6 rounded-2xl border border-blue-100 space-y-4">
                     <div className="flex items-center space-x-2 text-blue-900 font-bold">
@@ -574,7 +993,7 @@ export default function NewJob() {
                             type="text"
                             name="seoTitle"
                             className="w-full p-2.5 border rounded-lg"
-                            placeholder="e.g. SSC CGL 2026 Apply Online - Important Dates & Details"
+                            placeholder="Post Name"
                             value={formData.seoTitle}
                             onChange={handleInputChange}
                         />

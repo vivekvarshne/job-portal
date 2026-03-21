@@ -1,11 +1,13 @@
-import { getJobBySlug } from "@/lib/db/jobs";
+import { getJobBySlug, getJobsByCategory } from "@/lib/db/jobs";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { notFound } from "next/navigation";
-import { Calendar, MapPin, Building2, Download, ExternalLink, ChevronRight, FileCheck } from "lucide-react";
+import { Calendar, MapPin, Building2, Download, ExternalLink, ChevronRight, FileCheck, List, Table as TableIcon, Type } from "lucide-react";
 import Link from "next/link";
 import AdBanner from "@/components/AdBanner";
 import { Metadata } from "next";
+
+export const dynamic = "force-dynamic";
 
 interface Props {
     params: { slug: string };
@@ -36,10 +38,10 @@ export default async function JobDetail({ params }: Props) {
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-gray-50">
+        <>
             <Header />
 
-            <main className="flex-grow container mx-auto px-4 py-6">
+            <main className="min-h-screen flex flex-col bg-gray-50 flex-grow container mx-auto px-4 py-6">
                 <div className="mb-4">
                     <AdBanner position="job_top" />
                 </div>
@@ -67,7 +69,7 @@ export default async function JobDetail({ params }: Props) {
                             </span>
                             <span className="flex items-center">
                                 <Calendar className="h-4 w-4 mr-1" />
-                                Published: {new Date(job.createdAt?.toDate()).toLocaleDateString()}
+                                Published: {new Date(job.createdAt?.toDate()).toLocaleDateString('en-GB')}
                             </span>
                         </div>
                     </div>
@@ -100,6 +102,14 @@ export default async function JobDetail({ params }: Props) {
                                             <span className="text-gray-600">Result Date:</span>
                                             <span className="font-bold text-gray-900">{job.importantDates.resultDate}</span>
                                         </li>
+                                    )}
+                                    {job.importantDates.customDates && job.importantDates.customDates.length > 0 && (
+                                        job.importantDates.customDates.map((cd: any, idx: number) => (
+                                            <li key={idx} className="flex justify-between">
+                                                <span className="text-gray-600">{cd.label}:</span>
+                                                <span className="font-bold text-gray-900">{cd.date}</span>
+                                            </li>
+                                        ))
                                     )}
                                 </ul>
                             </div>
@@ -135,6 +145,66 @@ export default async function JobDetail({ params }: Props) {
                                 {job.ageLimit}
                             </div>
                         </div>
+
+                        {/* Dynamic Content Sections */}
+                        {job.contentSections && job.contentSections.length > 0 && (
+                            <div className="space-y-8">
+                                {job.contentSections.map((section) => (
+                                    <div key={section.id} className="border-t pt-8 first:border-t-0 first:pt-0">
+                                        <div className="flex items-center space-x-2 text-blue-900 font-bold mb-4 bg-blue-900 text-white p-2 rounded justify-center uppercase">
+                                            {section.type === 'table' && <TableIcon className="h-5 w-5" />}
+                                            {section.type === 'bullets' && <List className="h-5 w-5" />}
+                                            {section.type === 'rich-text' && <Type className="h-5 w-5" />}
+                                            <h2>{section.title}</h2>
+                                        </div>
+
+                                        {section.type === 'table' && section.tableData && (
+                                            <div className="overflow-x-auto border rounded-lg">
+                                                <table className="w-full text-sm text-left">
+                                                    <thead className="bg-gray-100 text-gray-700 font-bold uppercase tracking-wider">
+                                                        <tr>
+                                                            {section.tableData.headers.map((h, i) => (
+                                                                <th key={i} className="px-4 py-3 border-r last:border-r-0">{h}</th>
+                                                            ))}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y">
+                                                        {section.tableData.rows.map((row, i) => (
+                                                            <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                                                                {row.map((cell, j) => (
+                                                                    <td key={j} className="px-4 py-3 border-r last:border-r-0">{cell}</td>
+                                                                ))}
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
+
+                                        {section.type === 'bullets' && section.listData && (
+                                            <ul className="space-y-2 border rounded-lg p-4 bg-gray-50">
+                                                {section.listData.map((item, i) => (
+                                                    <li key={i} className="flex items-start">
+                                                        <span className="mr-2 mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-600 shrink-0" />
+                                                        <span className="text-gray-700 font-medium">{item}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+
+                                        {section.type === 'rich-text' && section.textData && (
+                                            <div className="text-sm text-gray-700 whitespace-pre-line border rounded-lg p-4 bg-gray-50 leading-relaxed font-medium">
+                                                {section.textData}
+                                            </div>
+                                        )}
+                                        
+                                        {/* Jobs List Section will be handled as a separate component fetch if needed, 
+                                            but since this is an async page, we could fetch here. 
+                                            For now, let's focus on the custom content. */}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
 
                         {/* Vacancy Details Table */}
                         <div>
@@ -249,6 +319,6 @@ export default async function JobDetail({ params }: Props) {
             </main>
 
             <Footer />
-        </div>
+        </>
     );
 }

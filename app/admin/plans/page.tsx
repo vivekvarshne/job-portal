@@ -127,7 +127,7 @@ export default function AdminPlans() {
                     onClick={() => openModal()}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center"
                 >
-                    <Plus className="w-5 h-5 mr-2" /> Create New Plan
+                    <Plus className="w-5 h-5 mr-3" /> Create New Plan
                 </button>
             </div>
 

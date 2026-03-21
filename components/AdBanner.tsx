@@ -68,11 +68,19 @@ export default function AdBanner({ position }: AdBannerProps) {
         }
     }, [position, isPremium]);
 
-    if (isPremium === null || isPremium === true || ads.length === 0) {
+    const [selectedAd, setSelectedAd] = useState<any>(null);
+
+    useEffect(() => {
+        if (ads.length > 0) {
+            setSelectedAd(ads[Math.floor(Math.random() * ads.length)]);
+        }
+    }, [ads]);
+
+    if (isPremium === null || isPremium === true || ads.length === 0 || !selectedAd) {
         return null;
     }
 
-    const adToDisplay = ads[Math.floor(Math.random() * ads.length)]; // Randomize if multiple
+    const adToDisplay = selectedAd;
 
     return (
         <div className={`w-full overflow-hidden my-4 flex flex-col justify-center items-center relative group`}>

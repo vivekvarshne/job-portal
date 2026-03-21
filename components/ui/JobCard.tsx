@@ -10,6 +10,8 @@ const JobCard = ({ job }: JobCardProps) => {
     return (
         <Link
             href={`/job/${job.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="block bg-white p-4 border-b hover:bg-blue-50 transition-colors group"
         >
             <div className="flex items-start justify-between">

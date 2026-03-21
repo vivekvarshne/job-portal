@@ -1,9 +1,11 @@
 import { getAllJobs } from "@/lib/db/jobs";
 import { MetadataRoute } from "next";
 
+export const revalidate = 3600; // Revalidate every hour
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const jobs = await getAllJobs();
-  const baseUrl = "https://jobportal-clone.vercel.app";
+  const baseUrl = "https://jobportel.online";
 
   const jobUrls = jobs.map((job) => ({
     url: `${baseUrl}/job/${job.slug}`,

@@ -2,8 +2,13 @@
 
 import { Bell } from "lucide-react";
 
+interface NewsItem {
+    title: string;
+    url?: string;
+}
+
 interface MarqueeProps {
-    news: string[];
+    news: NewsItem[];
 }
 
 const Marquee = ({ news }: MarqueeProps) => {
@@ -16,15 +21,15 @@ const Marquee = ({ news }: MarqueeProps) => {
             <div className="relative flex overflow-x-hidden">
                 <div className="flex animate-marquee whitespace-nowrap py-1">
                     {news.map((item, index) => (
-                        <span key={index} className="mx-8 text-sm font-medium text-red-700">
-                            • {item}
+                        <span key={index} className="mx-8 text-sm font-medium text-red-700 hover:text-red-900 transition-colors">
+                            • {item.url ? <a href={item.url} target="_blank" rel="noopener noreferrer">{item.title}</a> : item.title}
                         </span>
                     ))}
                 </div>
                 <div className="flex absolute top-0 animate-marquee2 whitespace-nowrap py-1">
                     {news.map((item, index) => (
-                        <span key={index} className="mx-8 text-sm font-medium text-red-700">
-                            • {item}
+                        <span key={`dup-${index}`} className="mx-8 text-sm font-medium text-red-700 hover:text-red-900 transition-colors">
+                            • {item.url ? <a href={item.url} target="_blank" rel="noopener noreferrer">{item.title}</a> : item.title}
                         </span>
                     ))}
                 </div>

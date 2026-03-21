@@ -56,13 +56,7 @@ export default function JansevaRequest({ params }: { params: { slug: string } })
         const checkAuthAndFetchJob = async () => {
             const { slug } = await params;
             
-            // Fetch form filling charge from settings
-            try {
-                const settingsDoc = await getDoc(doc(db, "settings", "charges"));
-                if (settingsDoc.exists()) {
-                    setFormFillingCharge(settingsDoc.data().formFillingCharge || 0);
-                }
-            } catch (e) { console.error("Settings fetch error:", e); }
+            // Fetch form filling charge from settings removed as it is now job-specific
 
             auth.onAuthStateChanged(async (currentUser) => {
                 if (currentUser) {
@@ -77,6 +71,9 @@ export default function JansevaRequest({ params }: { params: { slug: string } })
                     const jobData = await getJobBySlug(slug);
                     if (jobData) {
                         setJob(jobData);
+                        if (jobData.categoryFees && jobData.categoryFees.length > 0) {
+                            setFormData(prev => ({ ...prev, category: jobData.categoryFees![0].category }));
+                        }
                     }
                 } catch (error) {
                     console.error("Error fetching job", error);
@@ -111,7 +108,8 @@ export default function JansevaRequest({ params }: { params: { slug: string } })
         // Calculate total charge
         const selectedCatFee = job.categoryFees?.find((cf: any) => cf.category === formData.category);
         const applicationFeeAmount = selectedCatFee ? selectedCatFee.fee : 0;
-        const totalAmount = formFillingCharge + applicationFeeAmount;
+        const jobFormFillingCharge = job.formFee || 0;
+        const totalAmount = jobFormFillingCharge + applicationFeeAmount;
 
         // If payment not done and total > 0, initiate Razorpay
         if (!paymentDone && totalAmount > 0) {
@@ -267,15 +265,21 @@ export default function JansevaRequest({ params }: { params: { slug: string } })
                 {(() => {
                     const selectedCatFee = job.categoryFees?.find((cf: any) => cf.category === formData.category);
                     const applicationFeeAmount = selectedCatFee ? selectedCatFee.fee : 0;
-                    const totalAmount = formFillingCharge + applicationFeeAmount;
+                    const jobFormFillingCharge = job.formFee || 0;
+                    const totalAmount = jobFormFillingCharge + applicationFeeAmount;
                     
-                    return (formFillingCharge > 0 || applicationFeeAmount > 0) ? (
+                    return (jobFormFillingCharge > 0 || applicationFeeAmount > 0) ? (
                         <div className="bg-green-50 border border-green-200 p-5 rounded-xl">
                             <h3 className="text-lg font-bold text-green-900 mb-3">Total Charge Breakdown</h3>
                             <div className="space-y-2 text-sm">
-                                <div className="flex justify-between">
+                                <div className="flex justify-between items-center">
                                     <span className="text-gray-700">Form Filling Charge:</span>
-                                    <span className="font-bold text-gray-900">₹{formFillingCharge}</span>
+                                    <div className="text-right">
+                                        {job.originalFormFee > 0 && job.originalFormFee > job.formFee && (
+                                            <span className="text-xs text-red-500 line-through mr-2">₹{job.originalFormFee}</span>
+                                        )}
+                                        <span className="font-bold text-gray-900">₹{jobFormFillingCharge}</span>
+                                    </div>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-700">Application Fee ({formData.category}):</span>

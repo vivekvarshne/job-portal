@@ -72,7 +72,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* Sidebar - Desktop */}
             <aside className="hidden lg:flex w-64 bg-blue-900 text-white flex-col">
                 <div className="p-6 text-2xl font-bold border-b border-blue-800">
-                    SR Admin
+                    JOB PORTAL Admin
                 </div>
                 <nav className="flex-grow p-4 space-y-2">
                     {navItems.map((item) => (
@@ -102,7 +102,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Mobile Header */}
                 <header className="lg:hidden bg-blue-900 text-white p-4 flex items-center justify-between">
-                    <span className="font-bold text-xl">SR Admin</span>
+                    <span className="font-bold text-xl">JOB PORTAL Admin</span>
                     <button onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                         {isSidebarOpen ? <X /> : <Menu />}
                     </button>
@@ -112,7 +112,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {isSidebarOpen && (
                     <div className="lg:hidden fixed inset-0 z-50 bg-blue-900 text-white flex flex-col p-6 animate-in slide-in-from-left">
                         <div className="flex justify-between items-center mb-10">
-                            <span className="font-bold text-2xl">SR Admin</span>
+                            <span className="font-bold text-2xl">JOB PORTAL Admin</span>
                             <button onClick={() => setIsSidebarOpen(false)}><X className="h-8 w-8" /></button>
                         </div>
                         <nav className="space-y-4">

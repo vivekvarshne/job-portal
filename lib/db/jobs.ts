@@ -20,11 +20,12 @@ export interface Job {
   slug: string;
   category: "latest-jobs" | "admit-card" | "result" | "answer-key" | "syllabus" | "admission" | "documents";
   department: string;
-  importantDates: {
+    importantDates: {
     start: string;
     end: string;
     examDate?: string;
     resultDate?: string;
+    customDates?: { label: string; date: string }[];
   };
   applicationFee: string;
   categoryFees?: { category: string; fee: number }[];
@@ -39,6 +40,19 @@ export interface Job {
   pdfUrl?: string;
   requiredDocuments?: string[];
   formFee?: number;
+  originalFormFee?: number;
+  contentSections?: {
+    id: string;
+    title: string;
+    type: "table" | "bullets" | "rich-text" | "jobs-list";
+    tableData?: {
+        headers: string[];
+        rows: string[][];
+    };
+    listData?: string[];
+    textData?: string;
+    category?: string;
+  }[];
   seoTitle: string;
   seoDescription: string;
   status: "draft" | "published";
