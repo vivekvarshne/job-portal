@@ -18,7 +18,9 @@ import {
     Tag,
     Search as SeoIcon,
     FileText,
-    Link as LinkIcon
+    Link as LinkIcon,
+    ChevronUp,
+    ChevronDown
 } from "lucide-react";
 import Link from "next/link";
 
@@ -41,11 +43,12 @@ export default function NewJob() {
         },
         applicationFee: "",
         categoryFees: [
-            { category: "General", fee: 0 },
-            { category: "OBC", fee: 0 },
-            { category: "SC/ST", fee: 0 },
-        ] as { category: string; fee: number }[],
+            { category: "General", fee: "0" },
+            { category: "OBC", fee: "0" },
+            { category: "SC/ST", fee: "0" },
+        ] as { category: string; fee: string | number }[],
         ageLimit: "",
+        totalPosts: "",
         vacancyDetails: [
             { postName: "", totalPost: 0, eligibility: "" }
         ],
@@ -134,6 +137,24 @@ export default function NewJob() {
         setFormData({ ...formData, externalLinks: newLinks });
     };
 
+    const moveLinkUp = (idx: number) => {
+        if (idx === 0) return;
+        setFormData(prev => {
+            const newLinks = [...prev.externalLinks];
+            [newLinks[idx - 1], newLinks[idx]] = [newLinks[idx], newLinks[idx - 1]];
+            return { ...prev, externalLinks: newLinks };
+        });
+    };
+
+    const moveLinkDown = (idx: number) => {
+        setFormData(prev => {
+            if (idx === prev.externalLinks.length - 1) return prev;
+            const newLinks = [...prev.externalLinks];
+            [newLinks[idx + 1], newLinks[idx]] = [newLinks[idx], newLinks[idx + 1]];
+            return { ...prev, externalLinks: newLinks };
+        });
+    };
+
     const handleLinkChange = (idx: number, field: 'title' | 'url', value: string) => {
         const newLinks = [...formData.externalLinks];
         newLinks[idx] = { ...newLinks[idx], [field]: value };
@@ -180,7 +201,7 @@ export default function NewJob() {
         };
 
         if (type === "table") {
-            newSection.tableData = { headers: ["Column 1", "Column 2"], rows: [["", ""]] };
+            newSection.tableData = { headers: ["Column 1", "Column 2"], rows: [{ cells: ["", ""] }] };
         } else if (type === "bullets") {
             newSection.listData = [""];
         } else if (type === "rich-text") {
@@ -213,7 +234,7 @@ export default function NewJob() {
             contentSections: prev.contentSections?.map(s => {
                 if (s.id === sectionId && s.tableData) {
                     const newRow = new Array(s.tableData.headers.length).fill("");
-                    return { ...s, tableData: { ...s.tableData, rows: [...s.tableData.rows, newRow] } };
+                    return { ...s, tableData: { ...s.tableData, rows: [...s.tableData.rows, { cells: newRow }] } };
                 }
                 return s;
             })
@@ -238,7 +259,8 @@ export default function NewJob() {
             contentSections: prev.contentSections?.map(s => {
                 if (s.id === sectionId && s.tableData) {
                     const newRows = [...s.tableData.rows];
-                    newRows[rowIndex][colIndex] = value;
+                    newRows[rowIndex] = { cells: [...newRows[rowIndex].cells] };
+                    newRows[rowIndex].cells[colIndex] = value;
                     return { ...s, tableData: { ...s.tableData, rows: newRows } };
                 }
                 return s;
@@ -252,7 +274,7 @@ export default function NewJob() {
             contentSections: prev.contentSections?.map(s => {
                 if (s.id === sectionId && s.tableData) {
                     const newHeaders = [...s.tableData.headers, `Column ${s.tableData.headers.length + 1}`];
-                    const newRows = s.tableData.rows.map(row => [...row, ""]);
+                    const newRows = s.tableData.rows.map(row => ({ cells: [...row.cells, ""] }));
                     return { ...s, tableData: { headers: newHeaders, rows: newRows } };
                 }
                 return s;
@@ -266,7 +288,7 @@ export default function NewJob() {
             contentSections: prev.contentSections?.map(s => {
                 if (s.id === sectionId && s.tableData && s.tableData.headers.length > 1) {
                     const newHeaders = s.tableData.headers.filter((_, i) => i !== colIndex);
-                    const newRows = s.tableData.rows.map(row => row.filter((_, i) => i !== colIndex));
+                    const newRows = s.tableData.rows.map(row => ({ cells: row.cells.filter((_, i) => i !== colIndex) }));
                     return { ...s, tableData: { headers: newHeaders, rows: newRows } };
                 }
                 return s;
@@ -620,14 +642,13 @@ export default function NewJob() {
                                     <div className="flex items-center">
                                         <span className="text-gray-500 font-bold mr-1">₹</span>
                                         <input
-                                            type="number"
-                                            min="0"
+                                            type="text"
                                             className="w-24 p-2 border rounded-lg text-sm text-center font-bold"
                                             placeholder="0"
                                             value={cf.fee}
                                             onChange={(e) => {
                                                 const updated = [...formData.categoryFees];
-                                                updated[idx].fee = Number(e.target.value);
+                                                updated[idx].fee = e.target.value;
                                                 setFormData(prev => ({ ...prev, categoryFees: updated }));
                                             }}
                                         />
@@ -651,15 +672,30 @@ export default function NewJob() {
                         </div>
                     </section>
                     <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <h2 className="text-sm font-bold text-gray-900 uppercase mb-4">Age Limit</h2>
-                        <textarea
-                            name="ageLimit"
-                            rows={4}
-                            className="w-full p-2.5 border rounded-lg"
-                            placeholder="Min Age: 18 Years&#10;Max Age: 27 Years"
-                            value={formData.ageLimit}
-                            onChange={handleInputChange}
-                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <h2 className="text-sm font-bold text-gray-900 uppercase mb-2">Age Limit</h2>
+                                <textarea
+                                    name="ageLimit"
+                                    rows={3}
+                                    className="w-full p-2.5 border rounded-lg"
+                                    placeholder="Min Age: 18 Years&#10;Max Age: 27 Years"
+                                    value={formData.ageLimit}
+                                    onChange={handleInputChange}
+                                />
+                            </div>
+                            <div>
+                                <h2 className="text-sm font-bold text-gray-900 uppercase mb-2">Total Post</h2>
+                                <input
+                                    type="text"
+                                    name="totalPosts"
+                                    className="w-full p-2.5 border rounded-lg"
+                                    placeholder="e.g. 500 Posts"
+                                    value={formData.totalPosts}
+                                    onChange={handleInputChange}
+                                />
+                            </div>
+                        </div>
                     </section>
                 </div>
 
@@ -741,7 +777,25 @@ export default function NewJob() {
                     </div>
                     <div className="space-y-4">
                         {formData.externalLinks.map((link, idx) => (
-                            <div key={idx} className="flex flex-col md:flex-row gap-4 p-4 border rounded-xl bg-gray-50 relative">
+                            <div key={idx} className="flex flex-col md:flex-row gap-4 p-4 border rounded-xl bg-gray-50 relative group">
+                                <div className="absolute -left-3 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                    <button
+                                        type="button"
+                                        onClick={() => moveLinkUp(idx)}
+                                        className="p-1 bg-white border rounded shadow-sm hover:text-blue-600 disabled:opacity-30"
+                                        disabled={idx === 0}
+                                    >
+                                        <ChevronUp className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => moveLinkDown(idx)}
+                                        className="p-1 bg-white border rounded shadow-sm hover:text-blue-600 disabled:opacity-30"
+                                        disabled={idx === formData.externalLinks.length - 1}
+                                    >
+                                        <ChevronDown className="h-4 w-4" />
+                                    </button>
+                                </div>
                                 <div className="flex-1">
                                     <label className="text-xs font-bold text-gray-500 uppercase px-1">Link Title</label>
                                     <input
@@ -902,7 +956,7 @@ export default function NewJob() {
                                         <div className="space-y-2">
                                             {section.tableData.rows.map((row, ri) => (
                                                 <div key={ri} className="flex gap-2">
-                                                    {row.map((cell, ci) => (
+                                                    {row.cells.map((cell: string, ci: number) => (
                                                         <input
                                                             key={ci}
                                                             type="text"

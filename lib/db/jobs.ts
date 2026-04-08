@@ -28,8 +28,9 @@ export interface Job {
     customDates?: { label: string; date: string }[];
   };
   applicationFee: string;
-  categoryFees?: { category: string; fee: number }[];
+  categoryFees?: { category: string; fee: number | string }[];
   ageLimit: string;
+  totalPosts?: string;
   vacancyDetails: {
     postName: string;
     totalPost: number;
@@ -47,7 +48,7 @@ export interface Job {
     type: "table" | "bullets" | "rich-text" | "jobs-list";
     tableData?: {
         headers: string[];
-        rows: string[][];
+        rows: { cells: string[] }[];
     };
     listData?: string[];
     textData?: string;

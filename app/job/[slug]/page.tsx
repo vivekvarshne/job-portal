@@ -124,7 +124,9 @@ export default async function JobDetail({ params }: Props) {
                                         {job.categoryFees.map((cf: any, idx: number) => (
                                             <li key={idx} className="flex justify-between text-sm">
                                                 <span className="text-gray-600 font-medium">{cf.category}:</span>
-                                                <span className="font-bold text-gray-900">₹{cf.fee}</span>
+                                                <span className="font-bold text-gray-900">
+                                                    {typeof cf.fee === 'number' || (!isNaN(Number(cf.fee)) && cf.fee !== '') ? `₹${cf.fee}` : cf.fee}
+                                                </span>
                                             </li>
                                         ))}
                                     </ul>
@@ -136,14 +138,27 @@ export default async function JobDetail({ params }: Props) {
                             </div>
                         </div>
 
-                        {/* Age Limit */}
-                        <div className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
-                            <h2 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-200 pb-2">
-                                Age Limit
-                            </h2>
-                            <div className="text-sm text-gray-700 whitespace-pre-line">
-                                {job.ageLimit}
+                        {/* Age Limit & Total Post */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
+                                <h2 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-200 pb-2">
+                                    Age Limit
+                                </h2>
+                                <div className="text-sm text-gray-700 whitespace-pre-line">
+                                    {job.ageLimit}
+                                </div>
                             </div>
+                            {job.totalPosts && (
+                                <div className="border border-green-200 rounded-lg p-4 bg-green-50/50">
+                                    <h2 className="text-lg font-bold text-green-900 mb-4 border-b border-green-300 pb-2">
+                                        Total Vacancy
+                                    </h2>
+                                    <div className="text-2xl font-black text-green-700">
+                                        {job.totalPosts}
+                                    </div>
+                                    <p className="text-xs text-green-600 mt-2 font-bold uppercase tracking-wider">Total Posts Available</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Dynamic Content Sections */}
@@ -169,9 +184,9 @@ export default async function JobDetail({ params }: Props) {
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y">
-                                                        {section.tableData.rows.map((row, i) => (
+                                                        {section.tableData.rows.map((row: any, i: number) => (
                                                             <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                                                                {row.map((cell, j) => (
+                                                                {row.cells.map((cell: string, j: number) => (
                                                                     <td key={j} className="px-4 py-3 border-r last:border-r-0">{cell}</td>
                                                                 ))}
                                                             </tr>
