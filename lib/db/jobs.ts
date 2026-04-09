@@ -56,6 +56,7 @@ export interface Job {
   }[];
   seoTitle: string;
   seoDescription: string;
+  posterUrl?: string;
   status: "draft" | "published";
   createdAt: any;
 }

@@ -88,6 +88,16 @@ export default function AuthButtons() {
         <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50">
           {user ? (
             <>
+              {user?.email === "v753400@gmail.com" && (
+                <Link
+                  href="/admin/dashboard"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center px-4 py-2 text-sm text-blue-700 font-bold bg-blue-50 hover:bg-blue-100"
+                >
+                  <LayoutDashboard className="h-4 w-4 mr-3" />
+                  Admin Dashboard
+                </Link>
+              )}
               {userData?.role === "vendor" && (
                 <Link
                   href="/vendor/dashboard"

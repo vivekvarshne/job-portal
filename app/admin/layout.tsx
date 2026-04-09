@@ -28,10 +28,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (!user && pathname !== "/admin/login") {
-                router.push("/admin/login");
+            if (pathname === "/admin/login") {
+                if (user && user.email === "v753400@gmail.com") {
+                    router.push("/admin/dashboard");
+                }
             } else {
-                setUser(user);
+                if (!user || user.email !== "v753400@gmail.com") {
+                    router.push("/admin/login");
+                } else {
+                    setUser(user);
+                }
             }
             setLoading(false);
         });

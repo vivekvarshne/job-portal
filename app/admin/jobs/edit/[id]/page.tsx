@@ -20,7 +20,8 @@ import {
     FileText,
     Link as LinkIcon,
     ChevronUp,
-    ChevronDown
+    ChevronDown,
+    Image as ImageIcon
 } from "lucide-react";
 import Link from "next/link";
 
@@ -32,11 +33,12 @@ export default function EditJob() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [pdfFile, setPdfFile] = useState<File | null>(null);
+    const [posterFile, setPosterFile] = useState<File | null>(null);
 
     const [formData, setFormData] = useState<any>({
         title: "",
         slug: "",
-        category: "latest-jobs",
+        category: "",
         department: "",
         importantDates: {
             start: "",
@@ -58,7 +60,8 @@ export default function EditJob() {
         seoTitle: "",
         seoDescription: "",
         requiredDocuments: [],
-        status: "published"
+        status: "published",
+        posterUrl: ""
     });
 
     useEffect(() => {
@@ -388,10 +391,24 @@ export default function EditJob() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!formData.category) {
+            toast.error("Please select a category!");
+            return;
+        }
+
         setSaving(true);
 
         try {
             const jobUpdateData = { ...formData };
+
+            // Upload Poster Image if selected
+            if (posterFile) {
+                const posterRef = ref(storage, `job-posters/${Date.now()}_${posterFile.name}`);
+                await uploadBytes(posterRef, posterFile);
+                jobUpdateData.posterUrl = await getDownloadURL(posterRef);
+            }
+
             // Using direct pdfUrl input now, but keeping storage logic as fallback if file is picked
             if (pdfFile) {
                 const fileRef = ref(storage, `notifications/${Date.now()}_${pdfFile.name}`);
@@ -487,10 +504,12 @@ export default function EditJob() {
                             <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                             <select
                                 name="category"
+                                required
                                 className="w-full p-2.5 border rounded-lg outline-none"
                                 value={formData.category}
                                 onChange={handleInputChange}
                             >
+                                <option value="" disabled>-- Select Category --</option>
                                 <option value="latest-jobs">Latest Jobs</option>
                                 <option value="admit-card">Admit Card</option>
                                 <option value="result">Result</option>
@@ -1121,6 +1140,64 @@ export default function EditJob() {
                                 <p className="text-sm">No custom content sections added. Add tables or lists for detailed job info.</p>
                             </div>
                         )}
+                    </div>
+                </section>
+                
+                {/* Poster Image Section */}
+                <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6">
+                    <div className="flex items-center space-x-2 text-primary font-bold border-b pb-2 mb-4">
+                        <ImageIcon className="h-5 w-5" />
+                        <h2 className="uppercase">Bottom Poster Image</h2>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Upload Poster/Banner (Shows at bottom of post)</label>
+                        <div className="relative">
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                id="edit-poster-upload"
+                                onChange={(e) => setPosterFile(e.target.files?.[0] || null)}
+                            />
+                            <label
+                                htmlFor="edit-poster-upload"
+                                className="w-full flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 border-gray-300"
+                            >
+                                <Upload className="h-8 w-8 mb-2 text-gray-400" />
+                                <span className="text-sm text-gray-600 font-medium">
+                                    {posterFile ? posterFile.name : (formData.posterUrl ? "Change Image" : "Select Image File")}
+                                </span>
+                                <p className="text-xs text-gray-500 mt-1">Recommended: Wide banner format</p>
+                            </label>
+                            
+                            {(posterFile || formData.posterUrl) && (
+                                <div className="mt-4 relative w-full h-40 rounded-lg overflow-hidden border">
+                                    <img 
+                                        src={posterFile ? URL.createObjectURL(posterFile) : formData.posterUrl} 
+                                        alt="Poster preview" 
+                                        className="w-full h-full object-contain bg-gray-50"
+                                    />
+                                    {posterFile && (
+                                        <button 
+                                            type="button"
+                                            onClick={() => setPosterFile(null)}
+                                            className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full shadow-lg"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    )}
+                                    {!posterFile && formData.posterUrl && (
+                                        <button 
+                                            type="button"
+                                            onClick={() => setFormData({...formData, posterUrl: ""})}
+                                            className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full shadow-lg"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </section>
 

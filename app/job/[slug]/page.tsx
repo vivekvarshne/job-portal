@@ -323,6 +323,17 @@ export default async function JobDetail({ params }: Props) {
                     <AdBanner position="job_bottom" />
                 </div>
 
+                {/* Poster Image */}
+                {job.posterUrl && (
+                    <div className="mt-8 overflow-hidden flex justify-center">
+                        <img 
+                            src={job.posterUrl} 
+                            alt={`${job.title} Poster`} 
+                            className="w-full max-h-[500px] object-contain rounded-xl shadow-md"
+                        />
+                    </div>
+                )}
+
                 <div className="mt-6 bg-blue-50 border border-blue-100 p-6 rounded-lg">
                     <h2 className="font-bold text-blue-900 mb-2 uppercase">Official Notice:</h2>
                     <p className="text-sm text-blue-700 leading-relaxed italic">

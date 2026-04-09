@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   // Fetch real data from Firebase
   // Note: These will return empty arrays initially until data is added via Admin panel
-  const latestJobs = await getLatestJobs(15);
+  const latestJobs = await getJobsByCategory("latest-jobs");
   const admitCards = await getJobsByCategory("admit-card");
   const results = await getJobsByCategory("result");
   const answerKeys = await getJobsByCategory("answer-key");
