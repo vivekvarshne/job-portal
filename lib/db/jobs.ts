@@ -38,6 +38,7 @@ export interface Job {
   }[];
   applyLink: string;
   externalLinks?: { title: string; url: string }[];
+  sidebarLinks?: { title: string; url: string }[];
   pdfUrl?: string;
   requiredDocuments?: string[];
   formFee?: number;
@@ -56,9 +57,11 @@ export interface Job {
   }[];
   seoTitle: string;
   seoDescription: string;
+  shortDescription?: string;
   posterUrl?: string;
   status: "draft" | "published";
   createdAt: any;
+  showFormFillingHelp?: boolean;
 }
 
 const JOBS_COLLECTION = "jobs";
@@ -95,12 +98,16 @@ export const getJobBySlug = async (slug: string) => {
   return { id: docSnap.id, ...docSnap.data() } as Job;
 };
 
-export const getJobsByCategory = async (category: string, onlyPublished = true) => {
-  const constraints = [where("category", "==", category)];
+export const getJobsByCategory = async (category: string, onlyPublished = true, maxLimit?: number) => {
+  const constraints: any[] = [where("category", "==", category)];
   if (onlyPublished) {
     constraints.push(where("status", "==", "published"));
   }
-  const q = query(collection(db, JOBS_COLLECTION), ...constraints, orderBy("createdAt", "desc"));
+  constraints.push(orderBy("createdAt", "desc"));
+  if (maxLimit) {
+    constraints.push(limit(maxLimit));
+  }
+  const q = query(collection(db, JOBS_COLLECTION), ...constraints);
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Job[];
 };

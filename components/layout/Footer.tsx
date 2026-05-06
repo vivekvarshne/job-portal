@@ -3,7 +3,7 @@ import Link from "next/link";
 const Footer = () => {
     return (
         <footer className="bg-blue-900 text-white pt-12 pb-6">
-            <div className="container mx-auto px-4">
+            <div className="w-full px-4 md:px-8">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <div className="col-span-1 md:col-span-2">
                         <h3 className="text-xl font-bold mb-4">JOB PORTAL</h3>
@@ -15,11 +15,11 @@ const Footer = () => {
                     <div>
                         <h4 className="text-lg font-semibold mb-4 underline decoration-red-500 underline-offset-4">Quick Links</h4>
                         <ul className="space-y-2 text-sm text-blue-200">
-                            <li><Link href="/category/latest-jobs" className="hover:text-white transition-colors">Latest Jobs</Link></li>
-                            <li><Link href="/category/admit-card" className="hover:text-white transition-colors">Admit Card</Link></li>
-                            <li><Link href="/category/result" className="hover:text-white transition-colors">Results</Link></li>
-                            <li><Link href="/category/answer-key" className="hover:text-white transition-colors">Answer Key</Link></li>
-                            <li><Link href="/category/syllabus" className="hover:text-white transition-colors">Syllabus</Link></li>
+                            <li><Link href="/latest-jobs" className="hover:text-white transition-colors">Latest Jobs</Link></li>
+                            <li><Link href="/admit-card" className="hover:text-white transition-colors">Admit Card</Link></li>
+                            <li><Link href="/result" className="hover:text-white transition-colors">Results</Link></li>
+                            <li><Link href="/answer-key" className="hover:text-white transition-colors">Answer Key</Link></li>
+                            <li><Link href="/syllabus" className="hover:text-white transition-colors">Syllabus</Link></li>
                         </ul>
                     </div>
                     <div>

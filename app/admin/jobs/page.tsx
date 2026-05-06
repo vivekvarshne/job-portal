@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAllJobs, deleteJob, Job } from "@/lib/db/jobs";
+import { getAllJobs, deleteJob, getJobById, addJob, Job } from "@/lib/db/jobs";
 import {
     FileText,
     Search,
@@ -11,7 +11,8 @@ import {
     MoreVertical,
     ChevronRight,
     PlusCircle,
-    Loader2
+    Loader2,
+    Copy
 } from "lucide-react";
 import Link from "next/link";
 import { toast, Toaster } from "react-hot-toast";
@@ -39,6 +40,31 @@ export default function AdminJobList() {
             } catch (e) {
                 toast.error("Deletion failed");
             }
+        }
+    };
+
+    const handleCopy = async (id: string) => {
+        const loadingToast = toast.loading("Copying job...");
+        try {
+            const jobToCopy = await getJobById(id);
+            if (!jobToCopy) {
+                toast.error("Job not found", { id: loadingToast });
+                return;
+            }
+            
+            const { id: _, createdAt: __, ...rest } = jobToCopy as any;
+            const newJob = {
+                ...rest,
+                title: `${rest.title} (Copy)`,
+                slug: `${rest.slug}-copy-${Date.now()}`,
+                status: "draft"
+            };
+            
+            await addJob(newJob);
+            toast.success("Job copied successfully!", { id: loadingToast });
+            setRefetch(p => p + 1);
+        } catch (e) {
+            toast.error("Copy failed", { id: loadingToast });
         }
     };
 
@@ -115,6 +141,13 @@ export default function AdminJobList() {
                                                 >
                                                     <Eye className="h-5 w-5" />
                                                 </Link>
+                                                <button
+                                                    onClick={() => handleCopy(job.id!)}
+                                                    className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                    title="Duplicate"
+                                                >
+                                                    <Copy className="h-5 w-5" />
+                                                </button>
                                                 <Link
                                                     href={`/admin/jobs/edit/${job.id}`}
                                                     className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"

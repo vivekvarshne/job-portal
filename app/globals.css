@@ -36,3 +36,15 @@ body {
 .animate-marquee2 {
   animation: marquee2 30s linear infinite;
 }
+
+.rich-text-content a {
+  color: #2563eb; /* text-blue-600 */
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.rich-text-content a:hover {
+  text-decoration: underline;
+  color: #1e3a8a; /* text-blue-900 */
+}

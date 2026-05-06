@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Search, Menu, X } from "lucide-react";
 import { useState } from "react";
 import AuthButtons from "../auth/AuthButtons";
@@ -10,11 +11,11 @@ const Header = () => {
 
     const navLinks = [
         { name: "Home", href: "/" },
-        { name: "Latest Jobs", href: "/category/latest-jobs" },
-        { name: "Admit Card", href: "/category/admit-card" },
-        { name: "Result", href: "/category/result" },
-        { name: "Answer Key", href: "/category/answer-key" },
-        { name: "Syllabus", href: "/category/syllabus" },
+        { name: "Latest Jobs", href: "/latest-jobs" },
+        { name: "Admit Card", href: "/admit-card" },
+        { name: "Result", href: "/result" },
+        { name: "Answer Key", href: "/answer-key" },
+        { name: "Syllabus", href: "/syllabus" },
     ];
 
     return (
@@ -22,39 +23,45 @@ const Header = () => {
             <div className="bg-blue-800 text-white py-2 px-4 text-center text-sm font-semibold">
                 Job Portal: All Govt Jobs, Admit Card, Results 2026
             </div>
-            <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div className="w-full px-4 md:px-8 py-4 flex items-center justify-between">
                 <Link href="/" className="flex items-center space-x-2">
-                    <img 
-                        src="https://hariharsonline.wordpress.com/wp-content/uploads/2024/12/graphic1-1.png" 
+                    <Image 
+                        src="/logo.jpeg" 
                         alt="Job Portal Logo" 
+                        width={200}
+                        height={48}
                         className="h-12 w-auto object-contain rounded"
+                        priority
+                        unoptimized
                     />
                     <div className="flex flex-col">
-                        <span className="text-xl font-bold text-blue-900 leading-none">JOB PORTAL</span>
-                        <span className="text-xs text-red-600 font-semibold uppercase">Official Website</span>
+                        <span className="text-lg lg:text-xl font-bold text-blue-900 leading-none">JOB PORTAL</span>
+                        <span className="text-[10px] lg:text-xs text-red-600 font-semibold uppercase">Official Website</span>
                     </div>
                 </Link>
 
                 {/* Desktop Nav */}
-                <nav className="hidden md:flex items-center space-x-6">
+                <nav className="hidden md:flex items-center space-x-2 lg:space-x-6">
                     {navLinks.map((link) => (
                         <Link
                             key={link.name}
                             href={link.href}
-                            className="text-gray-700 hover:text-blue-700 font-medium transition-colors"
+                            className="text-gray-700 hover:text-blue-700 font-medium transition-colors text-[11px] lg:text-sm whitespace-nowrap"
                         >
                             {link.name}
                         </Link>
                     ))}
-                    <div className="relative group">
+                    <div className="relative group hidden sm:block">
                         <input
                             type="text"
-                            placeholder="Search jobs..."
-                            className="pl-8 pr-4 py-1 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Search..."
+                            className="pl-8 pr-2 py-1 border rounded-full text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-24 lg:w-40"
                         />
-                        <Search className="absolute left-2.5 top-1.5 h-4 w-4 text-gray-400" />
+                        <Search className="absolute left-2.5 top-1.5 h-3.5 w-3.5 text-gray-400" />
                     </div>
-                    <AuthButtons />
+                    <div className="scale-90 lg:scale-100 origin-right">
+                        <AuthButtons />
+                    </div>
                 </nav>
 
                 {/* Mobile Menu Button */}

@@ -16,7 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const categories = ["latest-jobs", "admit-card", "result", "answer-key", "syllabus"];
   const categoryUrls = categories.map((cat) => ({
-    url: `${baseUrl}/category/${cat}`,
+    url: `${baseUrl}/${cat}`,
     lastModified: new Date(),
     changeFrequency: "daily" as const,
     priority: 0.9,

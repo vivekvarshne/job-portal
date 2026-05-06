@@ -5,21 +5,28 @@ import JobCard from "@/components/ui/JobCard";
 import { notFound } from "next/navigation";
 import { Search } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60; // Cache for 60 seconds (ISR)
 
 interface Props {
     params: { category: string };
+}
+
+export function generateStaticParams() {
+    const validCategories = ["latest-jobs", "admit-card", "result", "answer-key", "syllabus", "admission", "documents"];
+    return validCategories.map((category) => ({
+        category: category,
+    }));
 }
 
 export default async function CategoryPage({ params }: Props) {
     const { category } = await params;
     const validCategories = ["latest-jobs", "admit-card", "result", "answer-key", "syllabus", "admission", "documents"];
 
-    // Normalizing category slug to match DB if needed
-    let dbCategory = category;
-    if (category === "latest-jobs") dbCategory = "latest-jobs"; // Already matches
+    if (!validCategories.includes(category)) {
+        notFound();
+    }
 
-    const jobs = await getJobsByCategory(dbCategory);
+    const jobs = await getJobsByCategory(category);
 
     const displayTitle = category.split("-").map(word =>
         word.charAt(0).toUpperCase() + word.slice(1)
@@ -29,7 +36,7 @@ export default async function CategoryPage({ params }: Props) {
         <div className="min-h-screen flex flex-col bg-gray-50">
             <Header />
 
-            <main className="flex-grow container mx-auto px-4 py-8">
+            <main className="flex-grow w-full px-2 md:px-4 py-4 md:py-8">
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-blue-900">{displayTitle}</h1>

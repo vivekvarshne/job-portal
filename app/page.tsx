@@ -7,18 +7,18 @@ import { getJobsByCategory, getLatestJobs } from "@/lib/db/jobs";
 import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60; // Cache for 60 seconds (ISR)
 
 export default async function Home() {
   // Fetch real data from Firebase
   // Note: These will return empty arrays initially until data is added via Admin panel
-  const latestJobs = await getJobsByCategory("latest-jobs");
-  const admitCards = await getJobsByCategory("admit-card");
-  const results = await getJobsByCategory("result");
-  const answerKeys = await getJobsByCategory("answer-key");
-  const syllabus = await getJobsByCategory("syllabus");
-  const admission = await getJobsByCategory("admission");
-  const documents = await getJobsByCategory("documents");
+  const latestJobs = await getJobsByCategory("latest-jobs", true, 12);
+  const admitCards = await getJobsByCategory("admit-card", true, 12);
+  const results = await getJobsByCategory("result", true, 12);
+  const answerKeys = await getJobsByCategory("answer-key", true, 5);
+  const syllabus = await getJobsByCategory("syllabus", true, 5);
+  const admission = await getJobsByCategory("admission", true, 5);
+  const documents = await getJobsByCategory("documents", true, 5);
 
   let breakingNews: {title: string, url?: string}[] = [];
   let importantLinks: {title: string, url?: string}[] = [];
@@ -43,13 +43,13 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <>
       <Header />
 
       <main className="flex-grow">
         <Marquee news={breakingNews} />
 
-        <div className="container mx-auto px-4 py-8">
+        <div className="w-full px-2 md:px-4 py-4 md:py-8">
           {/* Welcome Section */}
           <div className="bg-white p-6 rounded-lg border shadow-sm mb-8 text-center border-blue-100">
             <h1 className="text-2xl md:text-3xl font-extrabold text-blue-900 mb-2">
@@ -114,6 +114,6 @@ export default async function Home() {
       </main>
 
       <Footer />
-    </div>
+    </>
   );
 }

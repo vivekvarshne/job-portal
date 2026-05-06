@@ -60,11 +60,14 @@ export default function NewJob() {
         originalFormFee: 0,
         seoTitle: "",
         seoDescription: "",
+        shortDescription: "",
         requiredDocuments: [] as string[],
         externalLinks: [{ title: "Official Apply Link", url: "" }] as { title: string; url: string }[],
+        sidebarLinks: [] as { title: string; url: string }[],
         status: "published" as "published" | "draft",
         contentSections: [] as Job["contentSections"],
         posterUrl: "",
+        showFormFillingHelp: true
     });
 
     const handleInputChange = (e: any) => {
@@ -162,6 +165,42 @@ export default function NewJob() {
         const newLinks = [...formData.externalLinks];
         newLinks[idx] = { ...newLinks[idx], [field]: value };
         setFormData({ ...formData, externalLinks: newLinks });
+    };
+
+    const handleAddSidebarLink = () => {
+        setFormData({
+            ...formData,
+            sidebarLinks: [...formData.sidebarLinks, { title: "", url: "" }]
+        });
+    };
+
+    const handleRemoveSidebarLink = (idx: number) => {
+        const newLinks = formData.sidebarLinks.filter((_, i) => i !== idx);
+        setFormData({ ...formData, sidebarLinks: newLinks });
+    };
+
+    const moveSidebarLinkUp = (idx: number) => {
+        if (idx === 0) return;
+        setFormData(prev => {
+            const newLinks = [...prev.sidebarLinks];
+            [newLinks[idx - 1], newLinks[idx]] = [newLinks[idx], newLinks[idx - 1]];
+            return { ...prev, sidebarLinks: newLinks };
+        });
+    };
+
+    const moveSidebarLinkDown = (idx: number) => {
+        setFormData(prev => {
+            if (idx === prev.sidebarLinks.length - 1) return prev;
+            const newLinks = [...prev.sidebarLinks];
+            [newLinks[idx + 1], newLinks[idx]] = [newLinks[idx], newLinks[idx + 1]];
+            return { ...prev, sidebarLinks: newLinks };
+        });
+    };
+
+    const handleSidebarLinkChange = (idx: number, field: 'title' | 'url', value: string) => {
+        const newLinks = [...formData.sidebarLinks];
+        newLinks[idx] = { ...newLinks[idx], [field]: value };
+        setFormData({ ...formData, sidebarLinks: newLinks });
     };
 
     const addCustomDate = () => {
@@ -482,6 +521,17 @@ export default function NewJob() {
                             />
                         </div>
                         <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Short Description (Displays in a prominent box at the top of the post)</label>
+                            <textarea
+                                name="shortDescription"
+                                rows={3}
+                                className="w-full p-2.5 border rounded-lg"
+                                placeholder="Briefly describe the job or result (You can use basic HTML for links, e.g., <a href='url' class='text-blue-600 underline font-bold'>Link Text</a>)"
+                                value={formData.shortDescription}
+                                onChange={handleInputChange}
+                            />
+                        </div>
+                        <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Official Notification PDF URL (Optional)</label>
                             <input
                                 type="text"
@@ -522,6 +572,21 @@ export default function NewJob() {
                                 value={formData.originalFormFee}
                                 onChange={(e) => setFormData(prev => ({ ...prev, originalFormFee: Number(e.target.value) }))}
                             />
+                        </div>
+                        <div className="md:col-span-2 flex items-center justify-between mt-2 p-4 bg-white rounded-lg border border-green-200 shadow-sm">
+                            <div>
+                                <label className="block text-sm font-bold text-gray-900 mb-1">Show Janseva Kendra Form Button</label>
+                                <p className="text-xs text-gray-500">Toggle this to show or hide the "Form Filling Help" button on this job post.</p>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    className="sr-only peer" 
+                                    checked={formData.showFormFillingHelp !== false}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, showFormFillingHelp: e.target.checked }))}
+                                />
+                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                            </label>
                         </div>
                     </div>
                     <p className="text-[10px] text-green-600 italic">This will show as <span className="line-through text-red-400">₹{formData.originalFormFee || 200}</span> ₹{formData.formFee || 100} on the application form.</p>
@@ -757,8 +822,8 @@ export default function NewJob() {
                                 <div className="flex items-end">
                                     <div className="flex-1">
                                         <label className="text-xs font-bold text-gray-500 uppercase px-1">Eligibility</label>
-                                        <input
-                                            type="text"
+                                        <textarea
+                                            rows={2}
                                             className="w-full p-2 border rounded-lg mt-1"
                                             value={row.eligibility}
                                             onChange={(e) => handleVacancyChange(index, "eligibility", e.target.value)}
@@ -826,10 +891,10 @@ export default function NewJob() {
                                     />
                                 </div>
                                 <div className="flex-1">
-                                    <label className="text-xs font-bold text-gray-500 uppercase px-1">URL</label>
+                                    <label className="text-xs font-bold text-gray-500 uppercase px-1">URL (Tip: Format "Label,URL | Label,URL" for multiple)</label>
                                     <input
                                         type="text"
-                                        placeholder="https://..."
+                                        placeholder="e.g. Register,https://... | Login,https://..."
                                         className="w-full p-2 border rounded-lg mt-1"
                                         value={link.url}
                                         onChange={(e) => handleLinkChange(idx, 'url', e.target.value)}
@@ -846,6 +911,77 @@ export default function NewJob() {
                                 )}
                             </div>
                         ))}
+                    </div>
+                </section>
+
+                {/* Sidebar Links Section */}
+                <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6">
+                    <div className="flex justify-between items-center border-b pb-2">
+                        <div className="flex items-center space-x-2 text-red-700 font-bold">
+                            <LinkIcon className="h-5 w-5" />
+                            <h2 className="uppercase">Sidebar Links (Today Job Highlights)</h2>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleAddSidebarLink}
+                            className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded-lg flex items-center font-bold hover:bg-red-100 border border-red-100"
+                        >
+                            <Plus className="h-4 w-4 mr-1" /> ADD MORE HIGHLIGHT
+                        </button>
+                    </div>
+                    <div className="space-y-4">
+                        {formData.sidebarLinks.map((link, idx) => (
+                            <div key={idx} className="flex flex-col md:flex-row gap-4 p-4 border rounded-xl bg-gray-50 relative group">
+                                <div className="absolute -left-3 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                    <button
+                                        type="button"
+                                        onClick={() => moveSidebarLinkUp(idx)}
+                                        className="p-1 bg-white border rounded shadow-sm hover:text-red-600 disabled:opacity-30"
+                                        disabled={idx === 0}
+                                    >
+                                        <ChevronUp className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => moveSidebarLinkDown(idx)}
+                                        className="p-1 bg-white border rounded shadow-sm hover:text-red-600 disabled:opacity-30"
+                                        disabled={idx === formData.sidebarLinks.length - 1}
+                                    >
+                                        <ChevronDown className="h-4 w-4" />
+                                    </button>
+                                </div>
+                                <div className="flex-1">
+                                    <label className="text-xs font-bold text-gray-500 uppercase px-1">Highlight Title</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g., MP Police Constable Result"
+                                        className="w-full p-2 border rounded-lg mt-1"
+                                        value={link.title}
+                                        onChange={(e) => handleSidebarLinkChange(idx, 'title', e.target.value)}
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="text-xs font-bold text-gray-500 uppercase px-1">Highlight URL</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. /job/mp-police-result"
+                                        className="w-full p-2 border rounded-lg mt-1"
+                                        value={link.url}
+                                        onChange={(e) => handleSidebarLinkChange(idx, 'url', e.target.value)}
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => handleRemoveSidebarLink(idx)}
+                                    className="self-end md:mb-1 p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                                >
+                                    <Trash2 className="h-5 w-5" />
+                                </button>
+                            </div>
+                        ))}
+                        {formData.sidebarLinks.length === 0 && (
+                            <p className="text-sm text-gray-400 italic">No job highlights added. Click "Add More Highlight" to show links in the sidebar.</p>
+                        )}
                     </div>
                 </section>
 
@@ -976,9 +1112,9 @@ export default function NewJob() {
                                             {section.tableData.rows.map((row, ri) => (
                                                 <div key={ri} className="flex gap-2">
                                                     {row.cells.map((cell: string, ci: number) => (
-                                                        <input
+                                                        <textarea
                                                             key={ci}
-                                                            type="text"
+                                                            rows={2}
                                                             className="flex-1 min-w-[150px] p-2 border rounded text-xs"
                                                             value={cell}
                                                             onChange={(e) => updateTableCell(section.id, ri, ci, e.target.value)}

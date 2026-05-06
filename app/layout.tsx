@@ -17,14 +17,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5068191837445505"
      crossOrigin="anonymous"></script>
       </head>
       <body className={inter.className} suppressHydrationWarning>
-        <Toaster position="top-right" />
-        {children}
+        <div id="root-app" className="min-h-screen flex flex-col">
+          <Toaster position="top-right" />
+          {children}
+        </div>
       </body>
     </html>
   );

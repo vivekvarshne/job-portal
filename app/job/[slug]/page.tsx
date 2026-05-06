@@ -1,4 +1,4 @@
-import { getJobBySlug, getJobsByCategory } from "@/lib/db/jobs";
+import { getJobBySlug, getJobsByCategory, getLatestJobs } from "@/lib/db/jobs";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { notFound } from "next/navigation";
@@ -7,7 +7,7 @@ import Link from "next/link";
 import AdBanner from "@/components/AdBanner";
 import { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60; // Cache for 60 seconds (ISR)
 
 interface Props {
     params: { slug: string };
@@ -41,22 +41,26 @@ export default async function JobDetail({ params }: Props) {
         <>
             <Header />
 
-            <main className="min-h-screen flex flex-col bg-gray-50 flex-grow container mx-auto px-4 py-6">
-                <div className="mb-4">
-                    <AdBanner position="job_top" />
-                </div>
-                {/* Breadcrumb */}
-                <nav className="flex items-center text-xs text-gray-500 mb-6 font-medium">
-                    <Link href="/" className="hover:text-primary">Home</Link>
-                    <ChevronRight className="h-3 w-3 mx-2" />
-                    <Link href={`/category/${job.category}`} className="hover:text-primary capitalize">
-                        {job.category.replace("-", " ")}
-                    </Link>
-                    <ChevronRight className="h-3 w-3 mx-2" />
-                    <span className="text-gray-900 truncate max-w-[200px]">{job.title}</span>
-                </nav>
+            <main className="bg-gray-50 flex-grow w-full">
+                <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
+                    <div className="mb-4">
+                        <AdBanner position="job_top" />
+                    </div>
+                    {/* Breadcrumb */}
+                    <nav className="flex items-center text-xs text-gray-500 mb-6 font-medium">
+                        <Link href="/" className="hover:text-primary">Home</Link>
+                        <ChevronRight className="h-3 w-3 mx-2" />
+                        <Link href={`/${job.category}`} className="hover:text-primary capitalize">
+                            {job.category.replace("-", " ")}
+                        </Link>
+                        <ChevronRight className="h-3 w-3 mx-2" />
+                        <span className="text-gray-900 truncate max-w-[200px]">{job.title}</span>
+                    </nav>
 
-                <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+                    <div className="flex flex-col lg:flex-row gap-6 items-start">
+                        {/* Main Content Area */}
+                        <div className="w-full lg:w-[70%]">
+                            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
                     {/* Header Section */}
                     <div className="bg-primary text-white p-6">
                         <h1 className="text-xl md:text-2xl font-bold text-center uppercase">
@@ -75,6 +79,19 @@ export default async function JobDetail({ params }: Props) {
                     </div>
 
                     <div className="p-4 md:p-8 space-y-8">
+                        {/* Short Description */}
+                        {job.shortDescription && (
+                            <div className="border border-red-200 rounded-lg overflow-hidden bg-white">
+                                <h2 className="text-lg font-bold text-red-600 bg-red-50 text-center py-2 border-b border-red-200">
+                                    {job.title} : Short Details
+                                </h2>
+                                <div 
+                                    className="p-4 text-sm text-gray-700 leading-relaxed font-medium rich-text-content whitespace-pre-line"
+                                    dangerouslySetInnerHTML={{ __html: job.shortDescription }}
+                                />
+                            </div>
+                        )}
+
                         {/* Quick Info Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             {/* Important Dates */}
@@ -187,7 +204,7 @@ export default async function JobDetail({ params }: Props) {
                                                         {section.tableData.rows.map((row: any, i: number) => (
                                                             <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                                                                 {row.cells.map((cell: string, j: number) => (
-                                                                    <td key={j} className="px-4 py-3 border-r last:border-r-0">{cell}</td>
+                                                                    <td key={j} className="px-4 py-3 border-r last:border-r-0 whitespace-pre-wrap rich-text-content" dangerouslySetInnerHTML={{ __html: cell }} />
                                                                 ))}
                                                             </tr>
                                                         ))}
@@ -198,19 +215,20 @@ export default async function JobDetail({ params }: Props) {
 
                                         {section.type === 'bullets' && section.listData && (
                                             <ul className="space-y-2 border rounded-lg p-4 bg-gray-50">
-                                                {section.listData.map((item, i) => (
+                                                {section.listData.map((item: string, i: number) => (
                                                     <li key={i} className="flex items-start">
                                                         <span className="mr-2 mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-600 shrink-0" />
-                                                        <span className="text-gray-700 font-medium">{item}</span>
+                                                        <span className="text-gray-700 font-medium rich-text-content" dangerouslySetInnerHTML={{ __html: item }} />
                                                     </li>
                                                 ))}
                                             </ul>
                                         )}
 
                                         {section.type === 'rich-text' && section.textData && (
-                                            <div className="text-sm text-gray-700 whitespace-pre-line border rounded-lg p-4 bg-gray-50 leading-relaxed font-medium">
-                                                {section.textData}
-                                            </div>
+                                            <div 
+                                                className="text-sm text-gray-700 whitespace-pre-line border rounded-lg p-4 bg-gray-50 leading-relaxed font-medium rich-text-content"
+                                                dangerouslySetInnerHTML={{ __html: section.textData }}
+                                            />
                                         )}
                                         
                                         {/* Jobs List Section will be handled as a separate component fetch if needed, 
@@ -222,8 +240,9 @@ export default async function JobDetail({ params }: Props) {
                         )}
 
                         {/* Vacancy Details Table */}
+                        {job.vacancyDetails && job.vacancyDetails.length > 0 && job.vacancyDetails.some((v: any) => v.totalPost && v.totalPost !== "0" && v.totalPost !== 0) && (
                         <div>
-                            <h2 className="text-xl font-bold text-blue-900 mb-4">Total Vacancy: {job.vacancyDetails.reduce((acc, curr) => acc + (Number(curr.totalPost) || 0), 0)} Posts</h2>
+                            <h2 className="text-xl font-bold text-blue-900 mb-4">Total Vacancy: {job.vacancyDetails.reduce((acc: number, curr: any) => acc + (Number(curr.totalPost) || 0), 0)} Posts</h2>
                             <div className="overflow-x-auto border rounded-lg">
                                 <table className="w-full text-sm text-left">
                                     <thead className="bg-blue-900 text-white font-bold uppercase tracking-wider">
@@ -238,13 +257,14 @@ export default async function JobDetail({ params }: Props) {
                                             <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                                                 <td className="px-4 py-3 font-semibold text-blue-800 border-r">{v.postName}</td>
                                                 <td className="px-4 py-3 text-center font-bold border-r">{v.totalPost}</td>
-                                                <td className="px-4 py-3 text-gray-600">{v.eligibility}</td>
+                                                <td className="px-4 py-3 text-gray-600 whitespace-pre-wrap">{v.eligibility}</td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
+                        )}
 
                         {/* Required Documents Section */}
                         {job.requiredDocuments && job.requiredDocuments.length > 0 && (
@@ -271,21 +291,54 @@ export default async function JobDetail({ params }: Props) {
                         <AdBanner position="apply_page" />
 
                         {/* Action Buttons */}
-                        <div className="space-y-4 pt-4 border-t">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {(job.externalLinks && job.externalLinks.length > 0) ? (
-                                    job.externalLinks.map((link: any, idx: number) => (
-                                        <a
-                                            key={idx}
-                                            href={link.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg text-center flex items-center justify-center transition-transform hover:scale-[1.02] text-sm md:text-base uppercase"
-                                        >
-                                            {link.title || "Apply Online"} <ExternalLink className="h-5 w-5 ml-2 shrink-0" />
-                                        </a>
-                                    ))
-                                ) : (
+                        <div className="pt-4 border-t">
+                            {(job.externalLinks && job.externalLinks.length > 0) ? (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-center border-collapse border-2 border-yellow-400">
+                                        <tbody>
+                                            {job.externalLinks.map((link: any, idx: number) => {
+                                                // Check if it's the multiple link format: "Label,URL | Label2,URL2"
+                                                const urlString = link.url || "";
+                                                const hasMultiple = urlString.includes("|") && urlString.includes(",");
+                                                
+                                                let renderLinks = null;
+                                                if (hasMultiple) {
+                                                    const parts = urlString.split("|");
+                                                    renderLinks = parts.map((part: string, i: number) => {
+                                                        const [label, url] = part.split(",");
+                                                        return (
+                                                            <span key={i}>
+                                                                <a href={url?.trim()} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:text-blue-900 font-bold hover:underline">
+                                                                    {label?.trim()}
+                                                                </a>
+                                                                {i < parts.length - 1 && <span className="mx-2 text-gray-500">|</span>}
+                                                            </span>
+                                                        );
+                                                    });
+                                                } else {
+                                                    renderLinks = (
+                                                        <a href={urlString} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:text-blue-900 font-bold hover:underline">
+                                                            Click Here
+                                                        </a>
+                                                    );
+                                                }
+
+                                                return (
+                                                    <tr key={idx} className="bg-[#fcf8e3]">
+                                                        <td className="border-2 border-yellow-400 px-4 py-3 font-bold text-gray-900 w-1/2">
+                                                            {link.title}
+                                                        </td>
+                                                        <td className="border-2 border-yellow-400 px-4 py-3 text-center">
+                                                            {renderLinks}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                     <a
                                         href={job.applyLink}
                                         target="_blank"
@@ -294,9 +347,11 @@ export default async function JobDetail({ params }: Props) {
                                     >
                                         APPLY ONLINE <ExternalLink className="h-5 w-5 ml-2 shrink-0" />
                                     </a>
-                                )}
-                                
-                                {job.pdfUrl && (
+                                </div>
+                            )}
+                            
+                            {job.pdfUrl && (
+                                <div className="mt-4 flex justify-center">
                                     <a
                                         href={job.pdfUrl}
                                         target="_blank"
@@ -305,42 +360,100 @@ export default async function JobDetail({ params }: Props) {
                                     >
                                         DOWNLOAD NOTIFICATION <Download className="h-5 w-5 ml-2 shrink-0" />
                                     </a>
-                                )}
+                                </div>
+                            )}
+                        </div>
+                        {job.showFormFillingHelp !== false && (
+                            <div className="flex justify-center pt-2">
+                                <Link
+                                    href={`/janseva-request/${job.slug}`}
+                                    className="w-full sm:w-auto bg-blue-900 border-2 border-blue-900 hover:bg-white hover:text-blue-900 text-white font-bold py-4 px-8 rounded-lg text-center flex items-center justify-center transition-all hover:scale-[1.02] uppercase tracking-wide"
+                                >
+                                    FORM FILLING HELP (JANSEVA KENDRA) <ExternalLink className="h-5 w-5 ml-2" />
+                                </Link>
+                            </div>
+                        )}
+                        </div>
+                    </div>
+
+                {job.posterUrl && (
+                                <div className="mt-8 overflow-hidden flex justify-center">
+                                    <img 
+                                        src={job.posterUrl} 
+                                        alt={`${job.title} Poster`} 
+                                        className="w-full max-h-[500px] object-contain rounded-xl shadow-md"
+                                    />
+                                </div>
+                            )}
+
+                            <div className="mt-6 bg-blue-50 border border-blue-100 p-6 rounded-lg">
+                                <h2 className="font-bold text-blue-900 mb-2 uppercase">Official Notice:</h2>
+                                <p className="text-sm text-blue-700 leading-relaxed italic">
+                                    Candidates are advised to read the full official notification before applying.
+                                    Job Portal is not responsible for any error in the information provided.
+                                    All links are provided for convenience only.
+                                </p>
                             </div>
                         </div>
-                        <div className="flex justify-center pt-2">
-                            <Link
-                                href={`/janseva-request/${job.slug}`}
-                                className="w-full sm:w-auto bg-blue-900 border-2 border-blue-900 hover:bg-white hover:text-blue-900 text-white font-bold py-4 px-8 rounded-lg text-center flex items-center justify-center transition-all hover:scale-[1.02] uppercase tracking-wide"
-                            >
-                                FORM FILLING HELP (JANSEVA KENDRA) <ExternalLink className="h-5 w-5 ml-2" />
-                            </Link>
-                        </div>
+
+                        {/* Right Sidebar Area */}
+                        <aside className="w-full lg:w-[30%] flex flex-col gap-6 sticky top-24">
+                            {/* Social Buttons */}
+                            <div className="flex flex-col gap-3">
+                                <a href="#" target="_blank" rel="noopener noreferrer" className="bg-[#2481cc] hover:bg-[#1d6ba8] text-white font-bold py-3 px-4 rounded text-center transition-colors shadow-sm">
+                                    Join Telegram Channel
+                                </a>
+                                <a href="#" target="_blank" rel="noopener noreferrer" className="bg-[#25D366] hover:bg-[#1ea952] text-white font-bold py-3 px-4 rounded text-center transition-colors shadow-sm">
+                                    Join Whatsapp Channel
+                                </a>
+                            </div>
+
+                            {/* Today Job Highlights (Sidebar Links) */}
+                            {job.sidebarLinks && job.sidebarLinks.length > 0 && (
+                                <div className="border border-gray-200 bg-white shadow-sm">
+                                    <h3 className="bg-[#d32f2f] text-white font-bold py-3 px-4 text-center uppercase tracking-wide text-sm">
+                                        Today Job Highlights
+                                    </h3>
+                                    <ul className="divide-y divide-gray-100 p-2">
+                                        {job.sidebarLinks.map((link: any, idx: number) => (
+                                            <li key={idx} className="py-2.5 px-2">
+                                                <a href={link.url} className="text-[#2563eb] hover:underline text-[15px] font-bold block leading-tight">
+                                                    {link.title}
+                                                </a>
+                                                <span className="text-xs text-gray-400 mt-1 block">{new Date(job.createdAt?.toDate()).toLocaleDateString('en-GB')}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {/* Important Links */}
+                            <div className="flex flex-col text-center">
+                                <h3 className="font-bold mb-3 text-gray-800 border-b pb-2">Important Links</h3>
+                                <div className="flex flex-col gap-2">
+                                    <Link href="/latest-jobs" className="bg-[#3b5998] hover:bg-[#2d4373] text-white font-bold py-2 px-4 rounded shadow-sm text-sm">
+                                        Latest Jobs
+                                    </Link>
+                                    <Link href="/admit-card" className="bg-[#3b5998] hover:bg-[#2d4373] text-white font-bold py-2 px-4 rounded shadow-sm text-sm">
+                                        Admit Card
+                                    </Link>
+                                    <Link href="/result" className="bg-[#3b5998] hover:bg-[#2d4373] text-white font-bold py-2 px-4 rounded shadow-sm text-sm">
+                                        Result
+                                    </Link>
+                                    <Link href="/answer-key" className="bg-[#3b5998] hover:bg-[#2d4373] text-white font-bold py-2 px-4 rounded shadow-sm text-sm">
+                                        Answer Key
+                                    </Link>
+                                    <Link href="/syllabus" className="bg-[#3b5998] hover:bg-[#2d4373] text-white font-bold py-2 px-4 rounded shadow-sm text-sm">
+                                        Syllabus
+                                    </Link>
+                                </div>
+                            </div>
+                        </aside>
                     </div>
-                </div>
 
-                <div className="mt-8">
-                    <AdBanner position="job_bottom" />
-                </div>
-
-                {/* Poster Image */}
-                {job.posterUrl && (
-                    <div className="mt-8 overflow-hidden flex justify-center">
-                        <img 
-                            src={job.posterUrl} 
-                            alt={`${job.title} Poster`} 
-                            className="w-full max-h-[500px] object-contain rounded-xl shadow-md"
-                        />
+                    <div className="mt-8">
+                        <AdBanner position="job_bottom" />
                     </div>
-                )}
-
-                <div className="mt-6 bg-blue-50 border border-blue-100 p-6 rounded-lg">
-                    <h2 className="font-bold text-blue-900 mb-2 uppercase">Official Notice:</h2>
-                    <p className="text-sm text-blue-700 leading-relaxed italic">
-                        Candidates are advised to read the full official notification before applying.
-                        Job Portal is not responsible for any error in the information provided.
-                        All links are provided for convenience only.
-                    </p>
                 </div>
             </main>
 

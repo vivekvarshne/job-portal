@@ -92,6 +92,13 @@ export default function JansevaRequest({ params }: { params: { slug: string } })
         }
     };
 
+    const parseFee = (fee: any): number => {
+        if (typeof fee === 'number') return fee;
+        if (!fee) return 0;
+        const match = fee.toString().match(/\d+/);
+        return match ? parseInt(match[0], 10) : 0;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.fullName) {
@@ -107,8 +114,8 @@ export default function JansevaRequest({ params }: { params: { slug: string } })
 
         // Calculate total charge
         const selectedCatFee = job.categoryFees?.find((cf: any) => cf.category === formData.category);
-        const applicationFeeAmount = selectedCatFee ? selectedCatFee.fee : 0;
-        const jobFormFillingCharge = job.formFee || 0;
+        const applicationFeeAmount = selectedCatFee ? parseFee(selectedCatFee.fee) : 0;
+        const jobFormFillingCharge = parseFee(job.formFee);
         const totalAmount = jobFormFillingCharge + applicationFeeAmount;
 
         // If payment not done and total > 0, initiate Razorpay
@@ -264,8 +271,8 @@ export default function JansevaRequest({ params }: { params: { slug: string } })
                 {/* Charge Breakdown - dynamic based on selected category */}
                 {(() => {
                     const selectedCatFee = job.categoryFees?.find((cf: any) => cf.category === formData.category);
-                    const applicationFeeAmount = selectedCatFee ? selectedCatFee.fee : 0;
-                    const jobFormFillingCharge = job.formFee || 0;
+                    const applicationFeeAmount = selectedCatFee ? parseFee(selectedCatFee.fee) : 0;
+                    const jobFormFillingCharge = parseFee(job.formFee);
                     const totalAmount = jobFormFillingCharge + applicationFeeAmount;
                     
                     return (jobFormFillingCharge > 0 || applicationFeeAmount > 0) ? (
